@@ -1,0 +1,9 @@
+.DS_*
+*.log
+logs
+**/*.backup.*
+**/*.back.*
+*.sublime*
+.vscode
+*.code-workspace
+.idea
