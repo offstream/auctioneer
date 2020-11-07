@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.text import slugify
 
+# from apps.common.decorators import modify_model_fields
 from apps.common.models import Timestamps
 
 
@@ -21,6 +22,7 @@ def upload_location(instance, filename, **kwargs):
     )
 
 
+# @modify_model_fields(created_at={"verbose_name": "Date Created"})
 class Product(Timestamps, models.Model):
     name = models.CharField(max_length=150)
     description = models.TextField()
