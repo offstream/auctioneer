@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Auctioneer",
+  "name": "Auctioneer, A Simple Bidding Webapp",
   "icons": [
     {
       "src": "favicon.ico",
