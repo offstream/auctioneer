@@ -1,0 +1,14 @@
+@import "../styles/colors";
+
+.App {
+  background-color: $bg;
+  color: $fg;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.App > main {
+  flex-grow: 1;
+  width: 100%;
+}

@@ -1,11 +1,22 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import { render } from "react-dom";
+import { QueryCache, ReactQueryCacheProvider } from "react-query";
+// import { ReactQueryDevtools } from "react-query-devtools";
+import { BrowserRouter } from "react-router-dom";
+
 import "./index.scss";
 import App from "./App";
 
-ReactDOM.render(
+const queryCache = new QueryCache();
+
+render(
   <React.StrictMode>
-    <App />
+    <ReactQueryCacheProvider queryCache={queryCache}>
+      <BrowserRouter>
+        <App />
+        {/* <ReactQueryDevtools /> */}
+      </BrowserRouter>
+    </ReactQueryCacheProvider>
   </React.StrictMode>,
   document.getElementById("root"),
 );
