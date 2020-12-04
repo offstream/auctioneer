@@ -1,10 +1,9 @@
 import React from "react";
-import { useAuthStore } from "../shared/useAuthStore";
+import { logout } from "../shared/authService";
 
 export const LogoutButton: React.FC<React.HtmlHTMLAttributes<HTMLButtonElement>> = ({
   ...props
 }) => {
-  const logout = useAuthStore(state => state.logout);
   const handleLogout = () => {
     logout();
   };

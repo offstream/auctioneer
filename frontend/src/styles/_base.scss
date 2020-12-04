@@ -35,3 +35,7 @@ h3 {
 small {
   font-size: 0.875rem;
 }
+
+input:disabled {
+  cursor: not-allowed;
+}

@@ -1,11 +1,11 @@
 import { useRoutes } from "react-router-dom";
 
 import { routes } from "./routes";
-import { useAuthStore } from "./shared/useAuthStore";
+import { useUserStore } from "./shared/useUserStore";
 
 const App = () => {
-  const isLoggedIn = useAuthStore(state => state.isLoggedIn);
-  let element = useRoutes(routes(isLoggedIn));
+  const user_id = useUserStore(state => state.user_id);
+  let element = useRoutes(routes(!!user_id));
 
   return element;
 };
