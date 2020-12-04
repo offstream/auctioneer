@@ -1,12 +1,13 @@
 import React, { useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
+import { HOME_ROUTE } from "../Home";
 import Footer from "./Footer";
 import Header from "./Header";
 
 import styles from "./MainLayout.module.scss";
 
-const DEFAULT_PATH = "/home";
+const DEFAULT_PATH = HOME_ROUTE.path;
 
 export const MainLayout: React.FC = () => {
   const location = useLocation();

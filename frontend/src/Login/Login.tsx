@@ -70,7 +70,7 @@ const initialLoginState: LoginState = {
   formError: "",
 };
 
-export const Login: React.FC = () => {
+const Login: React.FC = () => {
   const { register, handleSubmit, errors, reset } = useForm<LoginFormData>({
     mode: "onBlur",
     reValidateMode: "onBlur",
@@ -148,4 +148,9 @@ export const Login: React.FC = () => {
       </form>
     </div>
   );
+};
+
+export const LOGIN_ROUTE = {
+  path: "login",
+  element: <Login />,
 };
