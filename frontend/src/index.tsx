@@ -6,28 +6,28 @@ import { BrowserRouter } from "react-router-dom";
 
 import "./index.scss";
 import App from "./App";
-import authService from "./shared/authService";
-import { useUserStore } from "./shared/useUserStore";
+import LoadingApp from "./LoadingApp";
+import useInitializeAuth from "./shared/useInitializeAuth";
 
 export const queryCache = new QueryCache();
 
-// initialize the authService
-// TODO: create app loading page for initialization
-authService.start(userId => {
-  useUserStore.setState({ user_id: userId });
-});
+const Root = () => {
+  const initializeAuth = useInitializeAuth();
+  return (
+    <React.StrictMode>
+      <ReactQueryCacheProvider queryCache={queryCache}>
+        <BrowserRouter>
+          <React.Suspense fallback={<LoadingApp />}>
+            <App initializeAuth={initializeAuth} />
+          </React.Suspense>
+          <ReactQueryDevtools />
+        </BrowserRouter>
+      </ReactQueryCacheProvider>
+    </React.StrictMode>
+  );
+};
 
-render(
-  <React.StrictMode>
-    <ReactQueryCacheProvider queryCache={queryCache}>
-      <BrowserRouter>
-        <App />
-        <ReactQueryDevtools />
-      </BrowserRouter>
-    </ReactQueryCacheProvider>
-  </React.StrictMode>,
-  document.getElementById("root"),
-);
+render(<Root />, document.getElementById("root"));
 
 // Hot Module Replacement (HMR) - Remove this snippet to remove HMR.
 // Learn more: https://www.snowpack.dev/#hot-module-replacement

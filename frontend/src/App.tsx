@@ -1,11 +1,13 @@
 import { useRoutes } from "react-router-dom";
-
 import { routes } from "./routes";
-import { useUserStore } from "./shared/useUserStore";
 
-const App = () => {
-  const user_id = useUserStore(state => state.user_id);
-  let element = useRoutes(routes(!!user_id));
+type AppProps = {
+  initializeAuth: () => { isLoggedIn: boolean; status: string; error: string };
+};
+
+const App: React.FC<AppProps> = ({ initializeAuth }) => {
+  const { isLoggedIn } = initializeAuth();
+  const element = useRoutes(routes(isLoggedIn));
 
   return element;
 };

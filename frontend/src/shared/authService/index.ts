@@ -2,16 +2,12 @@ import jwtDecode from "jwt-decode";
 import tokenStore from "./_tokenStore";
 import _client from "./_client";
 
-// import { delay } from "../utils";
-
-// TODO: proper status checking (FSM thingy???)
 let _authState: {
   status: "uninitialized" | "online" | "offline";
 } = {
   status: "uninitialized",
 };
 
-// login
 type LoginParams = {
   username: string;
   password: string;
@@ -29,25 +25,26 @@ function _getUserId(token: string) {
 }
 
 const authService = {
-  start: async (setUserIdCallback: (userId: number | null) => void) => {
+  start: async () => {
     if (_authState.status === "uninitialized") {
       return tokenStore
-        .init() // .then(delay(1000))
+        .init()
         .then(({ refresh }) => {
           const userId = _getUserId(refresh);
           _authState = { status: userId === null ? "offline" : "online" };
-          setUserIdCallback(userId);
-          return Promise.resolve("Auth service started.");
+          return Promise.resolve({ message: "Auth service started.", userId });
         })
         .catch(error => {
-          console.log(error);
+          // console.log(error);
           localStorage.clear();
           _authState = { status: "offline" };
-          setUserIdCallback(null);
           throw error;
         });
     }
-    return Promise.resolve("Auth service started.");
+    return Promise.resolve({
+      message: "Auth service started.",
+      userId: _getUserId(tokenStore.getRefreshToken()),
+    });
   },
 
   getToken: tokenStore.get,
