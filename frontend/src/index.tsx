@@ -1,24 +1,28 @@
 import React from "react";
 import { render } from "react-dom";
 import { QueryCache, ReactQueryCacheProvider } from "react-query";
-// import { ReactQueryDevtools } from "react-query-devtools";
+import { ReactQueryDevtools } from "react-query-devtools";
 import { BrowserRouter } from "react-router-dom";
 
 import "./index.scss";
 import App from "./App";
-import { tokenStore } from "./shared/authService";
+import authService from "./shared/authService";
+import { useUserStore } from "./shared/useUserStore";
 
-const queryCache = new QueryCache();
+export const queryCache = new QueryCache();
 
-// initialize the token store
-tokenStore.init();
+// initialize the authService
+// TODO: create app loading page for initialization
+authService.start(userId => {
+  useUserStore.setState({ user_id: userId });
+});
 
 render(
   <React.StrictMode>
     <ReactQueryCacheProvider queryCache={queryCache}>
       <BrowserRouter>
         <App />
-        {/* <ReactQueryDevtools /> */}
+        <ReactQueryDevtools />
       </BrowserRouter>
     </ReactQueryCacheProvider>
   </React.StrictMode>,

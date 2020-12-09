@@ -1,46 +1,57 @@
 import jwtDecode, { JwtPayload } from "jwt-decode";
 import _client from "./_client";
 
-type _tokenStore = {
-  status: string;
-  access: string;
-  refresh: string;
-  request?: Promise<string>;
-};
+type _StoreState =
+  | {
+      status: "idle" | "fetching";
+      access: string;
+      refresh: string;
+      request: Promise<string>;
+    }
+  | {
+      status: "uninitialized";
+      access: "";
+      refresh: "";
+      request: undefined;
+    };
 
-const _store: _tokenStore = {
+const _INITIAL_STATE: _StoreState = {
   status: "uninitialized",
   access: "",
   refresh: "",
+  request: undefined,
 };
+const _TOKEN_VALIDATION_OFFSET = 5; // in seconds, invalidate the token ealier
+const _TOKEN_STORAGE_KEY = "refreshToken";
 
-const _TOLERANCE = 5; // in seconds, we use this to invalidate the token ealier
+let _storeState: _StoreState = _INITIAL_STATE;
+
 const _validateToken = (token: string) => {
   try {
     const now = Math.ceil(new Date().getTime() / 1000); // convert to seconds
     const exp = jwtDecode<JwtPayload>(token).exp; // in seconds
-    return !!exp && exp - _TOLERANCE > now;
+    return !!exp && exp - _TOKEN_VALIDATION_OFFSET > now;
   } catch {
     return false;
   }
 };
 
-const _requestRefresh = () => {
+const _requestRefresh = (refreshToken?: string) => {
   console.log("Refreshing token...");
   return _client
     .post<{ access: string }>(`token/refresh/`, {
-      refresh: _store.refresh,
+      refresh: refreshToken ?? _storeState.refresh,
     })
     .then(req => req.data.access);
 };
 
-const _genTokenPromise = () =>
+const _genTokenPromise = (refreshToken?: string) =>
   new Promise<string>((resolve, reject) => {
-    if (_validateToken(_store.refresh)) {
-      _requestRefresh()
+    if (_validateToken(refreshToken ?? _storeState.refresh)) {
+      _requestRefresh(refreshToken)
         .then(accessToken => {
-          _store.status = "idle";
-          _store.access = accessToken;
+          _storeState.status = "idle";
+          _storeState.access = accessToken;
           resolve(accessToken);
         })
         .catch(reject);
@@ -50,49 +61,72 @@ const _genTokenPromise = () =>
   });
 
 const tokenStore = {
-  init: (refresh: string = "", access: string = "") => {
-    if (_store.status === "uninitialized") {
-      const newRefresh = !!refresh ? refresh : localStorage.getItem("refreshToken");
-      if (newRefresh) {
-        localStorage.setItem("refreshToken", newRefresh);
-        _store.refresh = newRefresh;
-        _store.access = access;
-        _store.status = "idle";
+  init: async (refresh: string = "", access: string = "") => {
+    if (_storeState.status === "uninitialized") {
+      if (refresh) {
+        localStorage.setItem(_TOKEN_STORAGE_KEY, refresh);
+        _storeState = {
+          refresh,
+          access,
+          status: "idle",
+          request: Promise.resolve(access),
+        };
+      } else {
+        const storedRefresh = localStorage.getItem(_TOKEN_STORAGE_KEY);
+        if (storedRefresh) {
+          _storeState = {
+            ..._storeState,
+            refresh: storedRefresh,
+            status: "fetching",
+            request: _genTokenPromise(storedRefresh),
+          };
+
+          return _storeState.request.then(() =>
+            Promise.resolve({ status: "initialized", refresh: _storeState.refresh }),
+          );
+        }
       }
     }
+    return Promise.resolve({ status: "initialized", refresh: _storeState.refresh });
   },
-  get: () => {
-    switch (_store.status) {
+  get: (): Promise<string> => {
+    switch (_storeState.status) {
       case "uninitialized":
         return Promise.reject(new Error("User is not logged in."));
       case "idle":
-        if (_validateToken(_store.access)) {
-          return Promise.resolve(_store.access);
+        if (_validateToken(_storeState.access)) {
+          return Promise.resolve(_storeState.access);
         } else {
-          _store.status = "fetching";
-          _store.request = _genTokenPromise();
-
-          return _store.request;
+          _storeState = {
+            ..._storeState,
+            status: "fetching",
+            request: _genTokenPromise(),
+          };
+          return _storeState.request;
         }
       case "fetching":
-        return _store.request;
+        return _storeState.request;
+      default:
+        return Promise.reject(new Error("An error occured."));
     }
   },
   reset: () => {
-    if (_store.status !== "uninitialized") {
-      _store.status = "uninitialized";
-      _store.access = "";
-      _store.refresh = "";
-      _store.request = undefined;
+    if (_storeState.status !== "uninitialized") {
+      _storeState = _INITIAL_STATE;
+      localStorage.removeItem(_TOKEN_STORAGE_KEY);
     }
   },
   refresh: () => {
     // this method skips checking access token validation
-    if (_store.status === "idle") {
-      _store.status = "fetching";
-      _store.request = _genTokenPromise();
+    if (_storeState.status === "idle") {
+      _storeState = {
+        ..._storeState,
+        status: "fetching",
+        request: _genTokenPromise(),
+      };
     }
   },
+  getRefreshToken: () => _storeState.refresh,
 };
 
 Object.freeze(tokenStore);

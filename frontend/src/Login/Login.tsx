@@ -2,7 +2,8 @@ import type { AxiosError } from "axios";
 import React, { useEffect, useReducer } from "react";
 import { useForm } from "react-hook-form";
 
-import { login } from "../shared/authService";
+import authService from "../shared/authService";
+import { useUserStore } from "../shared/useUserStore";
 import styles from "./Login.module.scss";
 
 type LoginFormData = {
@@ -11,7 +12,7 @@ type LoginFormData = {
 };
 
 type LoginState = {
-  status: string;
+  status: "idle" | "loading" | "success";
   submittedData: Partial<LoginFormData>;
   formError: string;
 };
@@ -83,8 +84,12 @@ const Login: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     dispatch({ type: "SUBMIT", submittedData: data });
     if (status === "idle") {
-      login(data)
-        .then(() => dispatch({ type: "RESOLVE" }))
+      authService
+        .login(data)
+        .then(({ userId }) => {
+          useUserStore.setState({ user_id: userId });
+          dispatch({ type: "RESOLVE" });
+        })
         .catch(error => dispatch({ type: "REJECT", error }));
     }
   };

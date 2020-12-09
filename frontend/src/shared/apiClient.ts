@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from "axios";
-import { tokenStore } from "./authService";
+import authService from "./authService";
 
 const CONFIG: AxiosRequestConfig = {
   baseURL: "/api/",
@@ -13,7 +13,7 @@ const CONFIG: AxiosRequestConfig = {
 const client = axios.create(CONFIG);
 
 client.interceptors.request.use(async request => {
-  const accessToken = await tokenStore.get();
+  const accessToken = await authService.getToken();
   request.headers["Authorization"] = `Bearer ${accessToken}`;
   return request;
 });
