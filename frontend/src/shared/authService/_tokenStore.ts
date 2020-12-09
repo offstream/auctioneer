@@ -1,6 +1,8 @@
 import jwtDecode, { JwtPayload } from "jwt-decode";
 import _client from "./_client";
 
+// TODO: add proper error objects and messages
+
 type _StoreState =
   | {
       status: "idle" | "fetching";
@@ -37,7 +39,7 @@ const _validateToken = (token: string) => {
 };
 
 const _requestRefresh = (refreshToken?: string) => {
-  console.log("Refreshing token...");
+  // console.log("Refreshing token...");
   return _client
     .post<{ access: string }>(`token/refresh/`, {
       refresh: refreshToken ?? _storeState.refresh,
@@ -116,6 +118,7 @@ const tokenStore = {
       localStorage.removeItem(_TOKEN_STORAGE_KEY);
     }
   },
+  // REVIEW: currently unused and untested
   refresh: () => {
     // this method skips checking access token validation
     if (_storeState.status === "idle") {

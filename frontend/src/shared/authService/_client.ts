@@ -3,6 +3,6 @@ import { CONFIG } from "../apiClient";
 
 const _client = axios.create(CONFIG);
 
-// retry interceptor??
+// TODO: possibly add retry on response interceptor
 
 export default _client;

@@ -1,5 +1,6 @@
 import React from "react";
 
+// TODO: replace this placeholder
 const Dashboard = () => {
   return <h1>This is the User's Personal Home Page.</h1>;
 };

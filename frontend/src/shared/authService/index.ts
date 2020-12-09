@@ -2,6 +2,8 @@ import jwtDecode from "jwt-decode";
 import tokenStore from "./_tokenStore";
 import _client from "./_client";
 
+// TODO: inspect error handling
+
 let _authState: {
   status: "uninitialized" | "online" | "offline";
 } = {
@@ -68,7 +70,7 @@ const authService = {
 
   logout: () => {
     if (_authState.status === "online") {
-      // request logout??
+      // TODO: add logout endpoint to backend server
       // const response = await _client.post("token/blacklist/", {jti: "get refresh jti"})
       tokenStore.reset();
       _authState = { ..._authState, status: "offline" };
@@ -76,6 +78,7 @@ const authService = {
     }
   },
 
+  // TODO: add register method
   // register
   // type RegisterParams = LoginParams & { email: string };
   // const register = async (params: RegisterParams) => {
