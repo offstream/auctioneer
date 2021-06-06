@@ -1,6 +1,7 @@
 import { useState } from "react";
-import authService from "./authService";
+import authService from "./authService/index_v2";
 import { useUserStore } from "./useUserStore";
+// import { delay } from "./utils";
 
 const initializeAuth = () => {
   let status = "pending";
@@ -8,6 +9,7 @@ const initializeAuth = () => {
 
   const initializing = authService
     .start()
+    // .then(delay(500))
     .then(({ userId }) => {
       status = "done";
       useUserStore.setState({ user_id: userId });

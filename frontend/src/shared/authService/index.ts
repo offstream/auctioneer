@@ -26,64 +26,59 @@ function _getUserId(token: string) {
   }
 }
 
-const authService = {
-  start: async () => {
-    if (_authState.status === "uninitialized") {
-      return tokenStore
-        .init()
-        .then(({ refresh }) => {
-          const userId = _getUserId(refresh);
-          _authState = { status: userId === null ? "offline" : "online" };
-          return Promise.resolve({ message: "Auth service started.", userId });
-        })
-        .catch(error => {
-          // console.log(error);
-          localStorage.clear();
-          _authState = { status: "offline" };
-          throw error;
-        });
+const start = async () => {
+  if (_authState.status === "uninitialized") {
+    try {
+      const { refresh } = await tokenStore.init();
+      const userId = _getUserId(refresh);
+      _authState = { status: userId === null ? "offline" : "online" };
+      return { message: "Auth service started.", userId };
+    } catch (error) {
+      localStorage.clear();
+      _authState = { status: "offline" };
+      throw error;
     }
-    return Promise.resolve({
-      message: "Auth service started.",
-      userId: _getUserId(tokenStore.getRefreshToken()),
-    });
-  },
-
-  getToken: tokenStore.get,
-
-  login: async (params: LoginParams) => {
-    if (_authState.status === "offline") {
-      const response = await _client.post<LoginResponseData>("token/", params);
-      const { refresh, access } = response.data;
-      const userId = _getUserId(refresh ?? "");
-
-      if (userId === null) {
-        return Promise.reject(new Error("Error logging in"));
-      }
-
-      tokenStore.init(refresh, access);
-      _authState = { ..._authState, status: "online" };
-      return { response, userId };
-    }
-    return Promise.reject(new Error("Error logging in."));
-  },
-
-  logout: () => {
-    if (_authState.status === "online") {
-      // TODO: add logout endpoint to backend server
-      // const response = await _client.post("token/blacklist/", {jti: "get refresh jti"})
-      tokenStore.reset();
-      _authState = { ..._authState, status: "offline" };
-      // return response;
-    }
-  },
-
-  // TODO: add register method
-  // register
-  // type RegisterParams = LoginParams & { email: string };
-  // const register = async (params: RegisterParams) => {
-  //   return _client.post<RegisterParams>("auth/register/", params);
-  // };
+  }
+  return {
+    message: "Auth service started.",
+    userId: _getUserId(tokenStore.getRefreshToken()),
+  };
 };
+
+const login = async (params: LoginParams) => {
+  if (_authState.status === "offline") {
+    const response = await _client.post<LoginResponseData>("token/", params);
+    const { refresh, access } = response.data;
+    const userId = _getUserId(refresh ?? "");
+
+    if (userId === null) {
+      throw new Error("Error logging in");
+    }
+
+    tokenStore.init(refresh, access);
+    _authState = { ..._authState, status: "online" };
+    return { response, userId };
+  }
+  throw new Error("Error logging in.");
+};
+
+const logout = () => {
+  if (_authState.status === "online") {
+    // TODO: add logout endpoint to backend server
+    // const response = await _client.post("token/blacklist/", {jti: "get refresh jti"})
+    tokenStore.reset();
+    _authState = { ..._authState, status: "offline" };
+    // return response;
+  }
+};
+
+// TODO: add register method
+// register
+// type RegisterParams = LoginParams & { email: string };
+// const register = async (params: RegisterParams) => {
+//   return _client.post<RegisterParams>("auth/register/", params);
+// };
+
+const authService = Object.freeze({ start, getToken: tokenStore.get, login, logout });
 
 export default authService;

@@ -3,7 +3,7 @@
 .App {
   background-color: $bg;
   color: $fg;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }

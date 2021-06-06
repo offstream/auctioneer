@@ -26,9 +26,9 @@ const _INITIAL_STATE: _StoreState = {
 const _TOKEN_VALIDATION_OFFSET = 5; // in seconds, invalidate the token ealier
 const _TOKEN_STORAGE_KEY = "refreshToken";
 
-let _storeState: _StoreState = _INITIAL_STATE;
+let _tokenState: _StoreState = _INITIAL_STATE;
 
-const _validateToken = (token: string) => {
+const _validateTokenExp = (token: string) => {
   try {
     const now = Math.ceil(new Date().getTime() / 1000); // convert to seconds
     const exp = jwtDecode<JwtPayload>(token).exp; // in seconds
@@ -38,22 +38,17 @@ const _validateToken = (token: string) => {
   }
 };
 
-const _requestRefresh = (refreshToken?: string) => {
-  // console.log("Refreshing token...");
-  return _client
-    .post<{ access: string }>(`token/refresh/`, {
-      refresh: refreshToken ?? _storeState.refresh,
-    })
-    .then(req => req.data.access);
-};
-
 const _genTokenPromise = (refreshToken?: string) =>
   new Promise<string>((resolve, reject) => {
-    if (_validateToken(refreshToken ?? _storeState.refresh)) {
-      _requestRefresh(refreshToken)
-        .then(accessToken => {
-          _storeState.status = "idle";
-          _storeState.access = accessToken;
+    if (_validateTokenExp(refreshToken ?? _tokenState.refresh)) {
+      console.log("Refreshing token...");
+      _client
+        .post<{ access: string }>(`token/refresh/`, {
+          refresh: refreshToken ?? _tokenState.refresh,
+        })
+        .then(({ data: { access: accessToken } }) => {
+          _tokenState.status = "idle";
+          _tokenState.access = accessToken;
           resolve(accessToken);
         })
         .catch(reject);
@@ -62,75 +57,74 @@ const _genTokenPromise = (refreshToken?: string) =>
     }
   });
 
-const tokenStore = {
-  init: async (refresh: string = "", access: string = "") => {
-    if (_storeState.status === "uninitialized") {
-      if (refresh) {
-        localStorage.setItem(_TOKEN_STORAGE_KEY, refresh);
-        _storeState = {
-          refresh,
-          access,
-          status: "idle",
-          request: Promise.resolve(access),
-        };
-      } else {
-        const storedRefresh = localStorage.getItem(_TOKEN_STORAGE_KEY);
-        if (storedRefresh) {
-          _storeState = {
-            ..._storeState,
-            refresh: storedRefresh,
-            status: "fetching",
-            request: _genTokenPromise(storedRefresh),
-          };
-
-          return _storeState.request.then(() =>
-            Promise.resolve({ status: "initialized", refresh: _storeState.refresh }),
-          );
-        }
-      }
-    }
-    return Promise.resolve({ status: "initialized", refresh: _storeState.refresh });
-  },
-  get: (): Promise<string> => {
-    switch (_storeState.status) {
-      case "uninitialized":
-        return Promise.reject(new Error("User is not logged in."));
-      case "idle":
-        if (_validateToken(_storeState.access)) {
-          return Promise.resolve(_storeState.access);
-        } else {
-          _storeState = {
-            ..._storeState,
-            status: "fetching",
-            request: _genTokenPromise(),
-          };
-          return _storeState.request;
-        }
-      case "fetching":
-        return _storeState.request;
-      default:
-        return Promise.reject(new Error("An error occured."));
-    }
-  },
-  reset: () => {
-    if (_storeState.status !== "uninitialized") {
-      _storeState = _INITIAL_STATE;
-      localStorage.removeItem(_TOKEN_STORAGE_KEY);
-    }
-  },
-  // REVIEW: currently unused and untested
-  refresh: () => {
-    // this method skips checking access token validation
-    if (_storeState.status === "idle") {
-      _storeState = {
-        ..._storeState,
-        status: "fetching",
-        request: _genTokenPromise(),
+const init = async (refresh = "", access = "") => {
+  if (_tokenState.status === "uninitialized") {
+    const storedRefresh = localStorage.getItem(_TOKEN_STORAGE_KEY);
+    if (!!refresh) {
+      localStorage.setItem(_TOKEN_STORAGE_KEY, refresh);
+      _tokenState = {
+        refresh,
+        access,
+        status: "idle",
+        request: Promise.resolve(access),
       };
+    } else if (storedRefresh) {
+      _tokenState = {
+        ..._tokenState,
+        refresh: storedRefresh,
+        status: "fetching",
+        request: _genTokenPromise(storedRefresh),
+      };
+      return _tokenState.request.then(() => ({
+        status: "initialized",
+        refresh: _tokenState.refresh,
+      }));
     }
-  },
-  getRefreshToken: () => _storeState.refresh,
+  }
+  return Promise.resolve({ status: "initialized", refresh: _tokenState.refresh });
 };
 
-Object.freeze(tokenStore);
+const get = (): Promise<string> => {
+  switch (_tokenState.status) {
+    case "uninitialized":
+      return Promise.reject(new Error("User is not logged in."));
+    case "idle":
+      if (_validateTokenExp(_tokenState.access)) {
+        return Promise.resolve(_tokenState.access);
+      } else {
+        _tokenState = {
+          ..._tokenState,
+          status: "fetching",
+          request: _genTokenPromise(),
+        };
+        return _tokenState.request;
+      }
+    case "fetching":
+      return _tokenState.request;
+  }
+};
+
+const reset = () => {
+  if (_tokenState.status !== "uninitialized") {
+    _tokenState = _INITIAL_STATE;
+    localStorage.removeItem(_TOKEN_STORAGE_KEY);
+  }
+};
+
+// REVIEW: currently unused and untested
+const refresh = () => {
+  // this method skips checking access token validation
+  if (_tokenState.status === "idle") {
+    _tokenState = {
+      ..._tokenState,
+      status: "fetching",
+      request: _genTokenPromise(),
+    };
+  }
+};
+
+const getRefreshToken = () => _tokenState.refresh;
+
+const tokenStore = Object.freeze({ init, get, reset, refresh, getRefreshToken });
+
 export default tokenStore;

@@ -1,0 +1,7 @@
+{
+  "editor.tabSize": 4,
+  "[django-html]": {
+    "editor.defaultFormatter": "batisteo.vscode-django",
+  },
+  "python.linting.enabled": true,
+}

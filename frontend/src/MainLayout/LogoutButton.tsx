@@ -1,5 +1,5 @@
 import React from "react";
-import authService from "../shared/authService";
+import authService from "../shared/authService/index_v2";
 import { useUserStore } from "../shared/useUserStore";
 
 export const LogoutButton: React.FC<React.HtmlHTMLAttributes<HTMLButtonElement>> = ({

@@ -139,11 +139,15 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     "DEFAULT_PERMISSION_CLASSES": [
+        # "rest_framework.permissions.IsAuthenticated"  # for testing
+        # "rest_framework.permissions.AllowAny"  # for testing
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
+    "DEFAULT_PAGINATION_CLASS": "apps.common.pagination.CustomPagination",
+    "PAGE_SIZE": 20,
 }
 
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", delimiter=";", default=[])

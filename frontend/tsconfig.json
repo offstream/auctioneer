@@ -1,5 +1,8 @@
 {
-  "include": ["src", "types"],
+  "include": [
+    "src",
+    "types"
+  ],
   "compilerOptions": {
     "module": "esnext",
     "target": "esnext",
@@ -16,6 +19,15 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "importsNotUsedAsValues": "error"
-  }
+    "importsNotUsedAsValues": "error",
+    // Strict Checks
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    // Linter Checks
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+  },
 }

@@ -4,8 +4,6 @@ logs
 **/*.backup.*
 **/*.back.*
 *.sublime*
-.vscode
-*.code-workspace
 .idea
 
 .env

@@ -1,0 +1,52 @@
+{
+	"folders": [
+		{
+			"name": "root",
+			"path": "."
+		},
+		{
+			"name": "backend",
+			"path": "./backend"
+		},
+		{
+			"name": "frontend",
+			"path": "./frontend"
+		}
+	],
+	"settings": {
+		"window.title": "[Auctioneer] ${activeEditorMedium}",
+		"window.titleSeparator": " : ",
+		"editor.rulers": [
+			80,
+		],
+		"editor.wordWrapColumn": 88,
+		"editor.formatOnSave": true,
+		"files.exclude": {
+			"**/.git": true,
+			"**/__pycache__": true,
+			"backend/": true,
+			"frontend/": true,
+		},
+		"search.exclude": {
+			"**/node_modules": true,
+			"**/bower_components": true,
+			"**/*.code-search": true,
+			".vscode/": true
+		},
+		"todo-tree.tree.scanMode": "workspace only",
+		"todo-tree.tree.showCountsInTree": true,
+		"todo-tree.tree.showBadges": true,
+		"dimmer.enabled": false,
+	},
+	"remoteAuthority": "wsl+Ubuntu",
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "echo",
+				"type": "shell",
+				"command": "echo Hello"
+			}
+		]
+	}
+}

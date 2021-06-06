@@ -2,7 +2,7 @@ import type { AxiosError } from "axios";
 import React, { useEffect, useReducer } from "react";
 import { useForm } from "react-hook-form";
 
-import authService from "../shared/authService";
+import authService from "../shared/authService/index_v2";
 import { useUserStore } from "../shared/useUserStore";
 import styles from "./Login.module.scss";
 
